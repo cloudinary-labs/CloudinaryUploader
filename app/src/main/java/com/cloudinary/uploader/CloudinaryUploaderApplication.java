@@ -17,6 +17,8 @@ public class CloudinaryUploaderApplication extends Application {
     private final String PREF_NAME = "cloudinary_uploader_pref";
     private final String CLOUD_NAME_PREF_NAME = "cloud_name";
 
+    public static int counter = 0;
+
     @Override
     public void onCreate() {
         super.onCreate();

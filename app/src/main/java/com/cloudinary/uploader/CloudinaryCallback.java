@@ -18,9 +18,16 @@ final class CloudinaryCallback implements UploadCallback {
     Map lastSuccess = null;
     ErrorInfo lastReschedule = null;
     Context mContext;
+    int mTotal;
 
     CloudinaryCallback(Context context) {
         mContext = context;
+        mTotal = -1;
+    }
+
+    CloudinaryCallback(Context context, int total) {
+        mContext = context;
+        mTotal = total;
     }
 
     @Override
@@ -35,13 +42,21 @@ final class CloudinaryCallback implements UploadCallback {
     public void onSuccess(String requestId, Map resultData) {
         this.lastSuccess = resultData;
         this.lastErrorObject = null;
-        showNotificationWithMessage(1, "Upload Done");
+        if (CloudinaryUploaderApplication.counter == -1) {
+            showNotificationWithMessage(1, "Upload Done");
+        } else {
+            CloudinaryUploaderApplication.counter++;
+            showNotificationWithMessage(1, "Upload " + CloudinaryUploaderApplication.counter + "/" + mTotal + " Done");
+        }
     }
 
     @Override
     public void onError(String requestId, ErrorInfo errorObject) {
         this.lastErrorObject = errorObject;
         showNotificationWithMessage(1, "Upload Error");
+        if (CloudinaryUploaderApplication.counter != -1) {
+            CloudinaryUploaderApplication.counter++;
+        }
     }
 
     public boolean hasResponse(){

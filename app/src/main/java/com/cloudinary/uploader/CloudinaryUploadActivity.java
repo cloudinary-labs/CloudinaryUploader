@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.cloudinary.android.MediaManager;
 import com.google.android.gms.common.util.IOUtils;
@@ -65,7 +66,7 @@ public class CloudinaryUploadActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null && type.startsWith("image/")) {
-            // handleSendMultipleImages(intent); // Handle multiple images being sent
+            handleSendMultipleImages(intent); // Handle multiple images being sent
         } else {
             // Handle other intents, such as being started from the home screen
             // Error?
@@ -83,28 +84,57 @@ public class CloudinaryUploadActivity extends AppCompatActivity {
             uploadButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        InputStream imageInputStream = getContentResolver().openInputStream(imageUri);
-                        String requestId = MediaManager.get().upload(IOUtils.toByteArray(imageInputStream)).unsigned(prefUploadPreset).callback(new CloudinaryCallback(CloudinaryUploadActivity.this)).dispatch();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    showNotificationWithMessage(1, "Uploading image...");
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    moveTaskToBack(true);
+                showNotificationWithMessage(1, "Uploading image...");
+                    CloudinaryUploaderApplication.counter = -1;
+                try {
+                    InputStream imageInputStream = getContentResolver().openInputStream(imageUri);
+                    String requestId = MediaManager.get()
+                            .upload(IOUtils.toByteArray(imageInputStream))
+                            .unsigned(prefUploadPreset)
+                            .callback(new CloudinaryCallback(CloudinaryUploadActivity.this))
+                            .startNow(CloudinaryUploadActivity.this);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                moveTaskToBack(true);
                 }
             });
         }
     }
 
     void handleSendMultipleImages(Intent intent) {
-        ArrayList<Uri> imageUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+        final ArrayList<Uri> imageUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
         if (imageUris != null) {
-            // Update UI to reflect multiple images being shared
+            final ImageView imgView = findViewById(R.id.previewImage);
+            imgView.setImageResource(R.drawable.ic_launcher_foreground);
+            TextView multipleTextView = findViewById(R.id.multipleFilesText);
+            multipleTextView.setText("Uploading " + imageUris.size() + " files");
+            multipleTextView.setTextSize(20);
+
+            Button uploadButton = findViewById(R.id.uploadButton);
+            uploadButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                showNotificationWithMessage(1, "Uploading images...");
+                CloudinaryUploaderApplication.counter = 0;
+                for (Uri imageUri : imageUris) {
+                    try {
+                        InputStream imageInputStream = getContentResolver().openInputStream(imageUri);
+                        String requestId = MediaManager.get()
+                                .upload(IOUtils.toByteArray(imageInputStream))
+                                .unsigned(prefUploadPreset)
+                                .callback(new CloudinaryCallback(CloudinaryUploadActivity.this, imageUris.size()))
+                                .dispatch();
+                        Thread.sleep(50);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                moveTaskToBack(true);
+                }
+            });
         }
     }
 

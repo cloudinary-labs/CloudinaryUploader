@@ -1,5 +1,4 @@
 *.iml
-.gradle
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -21,9 +20,3 @@
 .idea/runConfigurations.xml
 .idea/workspace.xml
 .idea
-gradle
-gradle.properties
-gradlew
-gradlew.bat
-build.gradle
-settings.gradle
